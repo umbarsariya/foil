@@ -417,7 +417,7 @@ pub fn hint(err: &io::Error) -> &'static str {
 }
 
 /// Write all of `data` to the file at `path` with raw syscalls (no allocation).
-unsafe fn write_file(path: &CStr, data: &[u8]) -> io::Result<()> {
+pub(crate) unsafe fn write_file(path: &CStr, data: &[u8]) -> io::Result<()> {
     let fd = cvt(libc::open(path.as_ptr(), libc::O_WRONLY | libc::O_CLOEXEC))?;
     let written = libc::write(fd, data.as_ptr().cast(), data.len());
     let err = io::Error::last_os_error();

@@ -234,18 +234,14 @@ fn cannot_write_outside_with_protect() {
 #[test]
 fn cannot_reach_the_network_with_no_network_but_loopback_works() {
     let env = Env::new("offline");
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let port = listener.local_addr().unwrap().port();
-    std::thread::spawn(move || {
-        for mut c in listener.incoming().flatten() {
-            let _ = c.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok");
-        }
-    });
+    // serve_once reads the request before replying: closing a socket with
+    // unread data sends a reset, which can discard the reply before curl reads it.
+    let port = serve_once(|_| "ok".to_owned());
     let out = env.run(
         &["--no-network"],
         &format!("curl -s -m 3 http://127.0.0.1:{port}/; echo; curl -s -m 3 -o /dev/null https://example.com || echo blocked"),
     );
-    assert_eq!(text(&out.stdout), "ok\nblocked\n");
+    assert_eq!(text(&out.stdout), "ok\nblocked\n", "{}", text(&out.stderr));
 }
 
 #[test]

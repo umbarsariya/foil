@@ -124,6 +124,11 @@ pub fn supervise_for(argv: &[OsString], isolation: Option<&Plan>, timeout: Optio
             if libc::getppid() != parent {
                 libc::_exit(1);
             }
+            // When memory runs out (a --memory limit, which also covers foil,
+            // or the whole machine), the OOM killer must pick the command,
+            // never foil: a killed foil can't clean up or say what happened.
+            // Raising one's own score needs no privilege; children inherit it.
+            let _ = isolate::write_file(c"/proc/self/oom_score_adj", b"1000");
             // Then the isolation: from here on, the workspace is the overlay.
             // (In a strict run this returns in a new child, PID 1 of its own
             // PID namespace, which arms its own dead-man's switch.)

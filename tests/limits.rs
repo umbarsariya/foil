@@ -70,6 +70,17 @@ fn a_memory_hog_is_killed_with_a_clear_message() {
     assert!(text(&out.stderr).contains("more memory than --memory allows"), "{}", text(&out.stderr));
 }
 
+/// foil shares the memory limit with its command; if the OOM killer chose
+/// foil, nothing would report the kill or clean up after it. (Linux: macOS
+/// has no OOM killer; its --memory is foil's own watchdog.)
+#[cfg(target_os = "linux")]
+#[test]
+fn the_command_not_foil_is_the_oom_killers_first_choice() {
+    let out = run(&[], "cat /proc/self/oom_score_adj");
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert_eq!(text(&out.stdout), "1000\n");
+}
+
 #[test]
 fn a_pids_limit_stops_runaway_forks() {
     if !available() {

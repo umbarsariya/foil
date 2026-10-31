@@ -5,6 +5,11 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+  # Nightly, so a change in the runners or the toolchain shows up even on a
+  # day with no merge; and a "Run workflow" button for a manual run.
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 jobs:
   test:

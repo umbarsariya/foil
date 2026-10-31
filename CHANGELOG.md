@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Linux: the command, not foil, is the OOM killer's first choice
+  (`oom_score_adj` 1000, inherited by everything it starts). Under a tight
+  `--memory` the kernel could kill foil itself, so the run ended with no
+  message and no cleanup.
 OpenSandbox compatibility.
 
 - `foil serve`: OpenSandbox's lifecycle API, with foil branches as
